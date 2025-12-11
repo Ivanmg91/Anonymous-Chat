@@ -1,0 +1,136 @@
+/* assets/css/style.css */
+
+:root {
+    --bg-color: #1a1a2e;         /* Fondo muy oscuro */
+    --container-bg: #16213e;     /* Fondo de contenedores */
+    --accent-color: #0f3460;     /* Azul oscuro */
+    --highlight-color: #e94560;  /* Rojo/Rosa para botones */
+    --text-color: #eaeaea;       /* Texto claro */
+    --text-muted: #b0b0b0;       /* Texto secundario */
+    --input-bg: #0f3460;         /* Fondo inputs */
+    --border-radius: 8px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* --- ESTILOS LOGIN --- */
+.login-wrapper {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.card {
+    background-color: var(--container-bg);
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+h2, h1 {
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+/* Formularios */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+input[type="text"], 
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius);
+    box-sizing: border-box; /* Para que el padding no rompa el ancho */
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--highlight-color);
+}
+
+/* Botones */
+button, .btn {
+    background-color: var(--highlight-color);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 100%;
+    transition: background 0.3s, transform 0.1s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+button:hover, .btn:hover {
+    background-color: #c0354e;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Mensajes de error/éxito */
+#message {
+    margin-top: 20px;
+    min-height: 20px;
+    font-weight: 500;
+}
+
+/* --- ESTILOS CHAT (Dashboard) --- */
+.app-container {
+    width: 90%;
+    max-width: 1000px;
+    height: 85vh;
+    background-color: var(--container-bg);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.chat-header {
+    background-color: rgba(0,0,0,0.2);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--accent-color);
+}
+
+.chat-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-muted);
+}
+
+.btn-small {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}

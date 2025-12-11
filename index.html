@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Chat</title>
+    <!-- Enlazamos el CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="card">
+            <h2>Iniciar Sesión</h2>
+            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
+                User: test | Password: password
+            </p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="text" id="user" placeholder="Usuario" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Contraseña" required autocomplete="current-password">
+                </div>
+                <button type="submit">Entrar</button>
+            </form>
+            
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
