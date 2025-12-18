@@ -134,3 +134,16 @@ button:active {
     padding: 8px 16px;
     font-size: 0.9rem;
 }
+
+.btn-secondary {
+    background-color: transparent;
+    border: 2px solid var(--highlight-color);
+    color: var(--highlight-color);
+    margin-top: 5px;
+    font-size: 0.9rem;
+}
+
+.btn-secondary:hover {
+    background-color: var(--highlight-color);
+    color: white;
+}
