@@ -30,32 +30,3 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         console.error('Error:', error);
     }
 });
-
-document.getElementById('btnAnon').addEventListener('click', async function() {
-    const messageDiv = document.getElementById('message');
-    messageDiv.textContent = 'Creando identidad anónima...';
-
-    try {
-        // Lamadda POST simple sin body
-        const response = await fetch('api/anonymous_login.php', {
-            method: 'POST'
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            // MOstrar usuario generado
-            messageDiv.innerHTML = 'Identidad creada: <b>' + result.user + '</b>. Entrando...';
-
-            // Redirigir al chat
-            setTimeout(() => {
-                window.location.href = 'views/welcome.php';
-            }, 1500);
-        } else {
-            messageDiv.textContent = 'Error: ' + result.message;
-        }
-    } catch (error) {
-        messageDiv.textContent = 'Error de conexion';
-        console.log(error);
-    }
-});

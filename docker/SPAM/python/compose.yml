@@ -1,0 +1,9 @@
+services:
+  spam-detector:
+    build: .
+    container_name: spam-detector
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./modelo_spam_completo.keras:/app/modelo_spam_completo.keras:ro
+    restart: unless-stopped

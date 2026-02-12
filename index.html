@@ -28,7 +28,11 @@
 
             <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">¿Necesitas ayuda urgente?</p>
-                <button id="btnAnon" class="btn-secondary">Entrar como Anónimo</button>
+                <a href="api/anonymous_login.php" style="text-decoration: none;">
+                    <button type="button" id="btnAnon" class="btn-secondary" style="width: 100%; cursor: pointer;">
+                        Entrar como Anónimo
+                    </button>
+                </a>
             </div>
             
             <div id="message"></div>

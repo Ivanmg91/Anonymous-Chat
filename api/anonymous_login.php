@@ -18,24 +18,29 @@
 
         // INSERTAR Y LOGUEAR
         // Preparamos la consulta
-        $stmt = $pdo->prepare("INSERT INTO usuarios (user, password) VALUES (?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO usuarios (user, password, role) VALUES (?, ?, 'alumno')");
 
         // Ejecutamos
         if ($stmt->execute([$username, $hashPassword])) {
             // Iniciamos la sesión aqui mismo
             $_SESSION['user'] = $username;
+            $_SESSION['role'] = 'alumno';
+            
+            // Session para que welcome.php sepa que es un usuario nuevo y lo muestre
+            $_SESSION['temp_credentials'] = [
+                'user' => $username,
+                'pass' => $rawPassword
+            ];
 
-            echo json_encode([
-                'success' => true,
-                'user' => $username
-            ]);
+            // Redirigimos al chat
+            header('Location: ../views/welcome.php');
+            exit;
         } else {
-            throw new Exception("No se ha podido generar el usuario en la base de datos");
+            throw new Exception("Error al guardar en base de datos");
         }
     } catch (Exception $e) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error: ' . $e->getMessage()
-        ]);
+        // Si falla, volvemos al login con error
+        header('Location: ../index.html?error=' . urlencode($e->getMessage()));
+        exit;
     }
 ?>
