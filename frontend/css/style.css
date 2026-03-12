@@ -71,6 +71,37 @@ button:active { transform: scale(0.98); }
     display: flex; flex-direction: column; gap: 10px;
 }
 
+.message {
+    max-width: min(75%, 520px);
+    padding: 12px 14px;
+    border-radius: 14px;
+    line-height: 1.4;
+    color: white;
+    word-break: break-word;
+}
+
+.message.mine {
+    align-self: flex-end;
+    background-color: var(--highlight-color);
+}
+
+.message.other {
+    align-self: flex-start;
+    background-color: var(--accent-color);
+}
+
+.message.system {
+    align-self: center;
+    background-color: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+}
+
+.message .meta {
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+}
+
 .chat-input-area {
     padding: 20px; background: rgba(0,0,0,0.2);
     border-top: 1px solid var(--accent-color);

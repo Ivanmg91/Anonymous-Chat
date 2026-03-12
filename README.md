@@ -77,6 +77,7 @@ Su función es simplificar el arranque al máximo:
 - crea `docker/.env` automáticamente a partir de `docker/.env.example` si todavía no existe
 - entra en la carpeta correcta de Docker
 - ejecuta `docker compose up -d --build`
+- espera a que MySQL esté listo y aplica `sql/database.sql`
 
 La idea es que, para levantar el entorno Docker, el usuario solo tenga que lanzar un comando.
 
@@ -97,6 +98,23 @@ La única forma documentada para levantar el entorno con Docker es usar el scrip
 ```
 
 Con ese comando no hace falta copiar archivos manualmente ni preparar `docker/.env` a mano para el arranque inicial.
+Tampoco hace falta borrar el volumen para que se creen las tablas que falten, porque el script reaplica el esquema al arrancar.
+
+Si quieres reiniciar el entorno completo y dejar la app en estado limpio para pruebas, puedes usar:
+
+```bash
+./docker/reset.sh
+```
+
+Ese script hace lo siguiente:
+
+- baja los contenedores del proyecto
+- elimina los volúmenes Docker para borrar la base de datos persistida
+- vuelve a levantar el stack con build
+- reaplica `sql/database.sql`
+- borra los archivos subidos en `frontend/uploads`
+
+Esto también invalida las sesiones guardadas en el contenedor PHP al recrearlo. Si el navegador conserva una cookie vieja, la aplicación simplemente te tratará como no autenticado.
 
 ### Accesos
 

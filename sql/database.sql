@@ -1,21 +1,8 @@
-DROP DATABASE IF EXISTS login;
-CREATE DATABASE login;
+CREATE DATABASE IF NOT EXISTS login;
 
 USE login;
 
--- 1. Tabla de Usuarios
-DROP TABLE IF EXISTS usuarios;
-CREATE TABLE usuarios (
-    user VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'profesor', 'alumno') NOT NULL DEFAULT 'alumno'
-DROP TABLE IF EXISTS archivos;
-DROP TABLE IF EXISTS mensajes;
-DROP TABLE IF EXISTS chat_rooms;
-DROP TABLE IF EXISTS usuarios;
-
--- 1. Tabla de Usuarios
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -25,8 +12,7 @@ CREATE TABLE usuarios (
     UNIQUE KEY uq_usuarios_user (user)
 );
 
--- 2. Tabla de Salas de chat
-CREATE TABLE chat_rooms (
+CREATE TABLE IF NOT EXISTS chat_rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_key CHAR(32) NOT NULL,
     student_user_id INT NOT NULL,
@@ -38,8 +24,7 @@ CREATE TABLE chat_rooms (
         FOREIGN KEY (student_user_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
--- 3. Tabla de Mensajes
-CREATE TABLE mensajes (
+CREATE TABLE IF NOT EXISTS mensajes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     chat_room_id INT NOT NULL,
     sender_user_id INT NOT NULL,
@@ -53,8 +38,7 @@ CREATE TABLE mensajes (
         FOREIGN KEY (sender_user_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
--- 4. Tabla de Archivos adjuntos
-CREATE TABLE archivos (
+CREATE TABLE IF NOT EXISTS archivos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     chat_room_id INT NOT NULL,
     uploaded_by_user_id INT NOT NULL,
@@ -76,23 +60,10 @@ CREATE TABLE archivos (
         FOREIGN KEY (mensaje_id) REFERENCES mensajes(id) ON DELETE SET NULL
 );
 
--- 5. Insertar usuario de prueba (Ahora es ADMIN)
-    original_name VARCHAR(255) NOT NULL,
-    stored_name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
-    mime_type VARCHAR(100) NOT NULL,
--- 6. Insertar un profesor de prueba
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user) REFERENCES usuarios(user) ON DELETE CASCADE,
-    FOREIGN KEY (message_id) REFERENCES mensajes(id) ON DELETE SET NULL
-);
+INSERT INTO usuarios (user, password, role)
+VALUES ('test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
+ON DUPLICATE KEY UPDATE user = user;
 
--- 3. Insertar usuario de prueba (Ahora es ADMIN)
--- Contraseña: password
-INSERT INTO usuarios (user, password, role) 
-VALUES ('test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
-
--- (Opcional) Insertar un profesor de prueba
--- Contraseña: password
-INSERT INTO usuarios (user, password, role) 
-VALUES ('profe', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'profesor');
+INSERT INTO usuarios (user, password, role)
+VALUES ('profe', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'profesor')
+ON DUPLICATE KEY UPDATE user = user;

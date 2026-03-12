@@ -45,8 +45,11 @@ if (isset($_SESSION['temp_credentials'])) {
         </div>
 
         <footer class="chat-input-area">
-            <form id="chatForm" style="display:flex; width:100%; gap:10px;">
-                <input type="text" id="messageInput" placeholder="Escribe tu problema aquí..." autocomplete="off" required>
+            <form id="chatForm" style="display:flex; width:100%; gap:10px; align-items:center; flex-wrap:wrap;">
+                <input type="file" id="imageInput" accept="image/*" style="display:none;">
+                <label for="imageInput" class="btn btn-small" style="width:auto; white-space:nowrap; background:#0f3460;">Subir imagen</label>
+                <span id="selectedImageName" style="font-size:0.9rem; color:var(--text-muted); min-width:160px;">Ninguna imagen seleccionada</span>
+                <input type="text" id="messageInput" placeholder="Escribe tu problema aquí..." autocomplete="off" style="flex:1; min-width:220px;">
                 <button type="submit" style="width: 50px;">➤</button>
             </form>
         </footer>

@@ -47,9 +47,10 @@ try {
     }
 
     $stmt = $pdo->prepare(
-        "SELECT u.user AS user, m.message, m.created_at
+        "SELECT u.user AS user, m.message, m.created_at, a.storage_path AS image_url, a.mime_type
          FROM mensajes m
          INNER JOIN usuarios u ON u.id = m.sender_user_id
+         LEFT JOIN archivos a ON a.mensaje_id = m.id
          WHERE m.chat_room_id = ?
          ORDER BY m.created_at ASC, m.id ASC"
     );

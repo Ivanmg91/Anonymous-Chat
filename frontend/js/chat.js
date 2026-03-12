@@ -1,6 +1,18 @@
 const chatBox = document.getElementById('chat-box');
 const chatForm = document.getElementById('chatForm');
 const messageInput = document.getElementById('messageInput');
+const imageInput = document.getElementById('imageInput');
+const selectedImageName = document.getElementById('selectedImageName');
+
+// Mostrar el nombre del archivo seleccionado (si existe)
+if (imageInput && selectedImageName) {
+    imageInput.addEventListener('change', () => {
+        const selectedFile = imageInput.files && imageInput.files[0];
+        selectedImageName.textContent = selectedFile
+            ? selectedFile.name
+            : 'Ninguna imagen seleccionada';
+    });
+}
 
 // CARGAR MENSAJES (Polling)
 async function loadMessages() {
@@ -13,14 +25,27 @@ async function loadMessages() {
 
         messages.forEach(msg => {
             const div = document.createElement('div');
-            // msg.is_me viene del PHP (true si fui yo, false si fue el profe)
             div.className = `message ${msg.is_me ? 'mine' : 'other'}`;
             div.innerHTML = `
                 <div class="meta">${msg.user} - ${msg.time}</div>
                 ${msg.message}
             `;
+
+            // Si hay una imagen, la mostramos debajo del mensaje
+            const textHtml = msg.message ? `<p>${msg.message}</p>` : '';
+            const imageHtml = msg.image_url
+                ? `<img src="${msg.image_url}" alt="Imagen enviada" class="chat-image">`
+                : '';
+
+            div.innerHTML = `
+                <div class="meta">${msg.user} - ${msg.time}</div>
+                ${textHtml}
+                ${imageHtml}
+            `;
+
             chatBox.appendChild(div);
         });
+
         
         // Auto scroll abajo (opcional, pero recomendado)
         // chatBox.scrollTop = chatBox.scrollHeight;
@@ -34,15 +59,43 @@ async function loadMessages() {
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = messageInput.value.trim();
-    if (!text) return;
+    const selectedFile = imageInput && imageInput.files ? imageInput.files[0] : null;
 
-    await fetch('../api/enviar.php', {
+    // Validación básica: no enviar si no hay texto ni imagen
+    if (!text && !selectedFile) return;
+
+    // Preparamos el FormData para enviar el mensaje y la imagen (si existe)
+    const formData = new FormData();
+    formData.append('message', text);
+
+
+    // Si hay una imagen seleccionada, la agregamos al FormData
+    if (selectedFile) {
+        formData.append('image', selectedFile);
+    }
+
+    // Enviamos el mensaje al backend
+    const response = await fetch('../api/enviar.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }) // Alumno no necesita especificar sala
+        body: formData
     });
 
+    // El backend devuelve un JSON con { success: true/false, message: "..." }
+    const result = await response.json();
+    if (!result.success) {
+        console.error('Error enviando mensaje:', result.message);
+        return;
+    }
+
+    // Limpiamos el input de texto y la imagen seleccionada
     messageInput.value = '';
+    if (imageInput) {
+        imageInput.value = '';
+    }
+    if (selectedImageName) {
+        selectedImageName.textContent = 'Ninguna imagen seleccionada';
+    }
+
     loadMessages(); // Refrescar al momento
 });
 
