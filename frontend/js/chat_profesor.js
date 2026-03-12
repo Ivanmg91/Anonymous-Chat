@@ -1,4 +1,5 @@
-let currentChatRoom = null; // Variable para saber con quién hablo
+let currentChatRoom = null;
+let currentStudentName = null;
 
 const usersList = document.getElementById('usersList');
 const chatBox = document.getElementById('chat-box');
@@ -20,20 +21,21 @@ async function loadUsers() {
             return;
         }
 
-        users.forEach(user => {
+        users.forEach(room => {
             const li = document.createElement('li');
-            li.className = `user-item ${user === currentChatRoom ? 'active' : ''}`;
-            li.textContent = user;
-            li.onclick = () => selectUser(user);
+            li.className = `user-item ${room.room_key === currentChatRoom ? 'active' : ''}`;
+            li.textContent = room.student_name;
+            li.onclick = () => selectUser(room);
             usersList.appendChild(li);
         });
     } catch (e) { console.error(e); }
 }
 
 // SELECCIONAR UN ALUMNO
-function selectUser(user) {
-    currentChatRoom = user;
-    chatTitle.textContent = "Chat con: " + user;
+function selectUser(room) {
+    currentChatRoom = room.room_key;
+    currentStudentName = room.student_name;
+    chatTitle.textContent = "Chat con: " + currentStudentName;
     inputArea.style.display = 'flex'; // Mostrar la caja de escribir
     loadMessages(); // Cargar mensajes inmediatamente
     loadUsers(); // Para actualizar el estilo visual 'active'

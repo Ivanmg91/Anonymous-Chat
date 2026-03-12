@@ -1,7 +1,6 @@
 <?php
     // backend/api/anonymous_login.php
 
-    
     session_start();
     require_once '../config/db.php';
 
@@ -16,29 +15,39 @@
         // Transformar la contraseña
         $hashPassword = password_hash($rawPassword, PASSWORD_DEFAULT);
 
-        // INSERTAR Y LOGUEAR
-        // Preparamos la consulta
+        $pdo->beginTransaction();
+
         $stmt = $pdo->prepare("INSERT INTO usuarios (user, password, role) VALUES (?, ?, 'alumno')");
-
-        // Ejecutamos
-        if ($stmt->execute([$username, $hashPassword])) {
-            // Iniciamos la sesión aqui mismo
-            $_SESSION['user'] = $username;
-            $_SESSION['role'] = 'alumno';
-            
-            // Session para que welcome.php sepa que es un usuario nuevo y lo muestre
-            $_SESSION['temp_credentials'] = [
-                'user' => $username,
-                'pass' => $rawPassword
-            ];
-
-            // Redirigimos al chat
-            header('Location: ../controllers/welcome.php');
-            exit;
-        } else {
+        if (!$stmt->execute([$username, $hashPassword])) {
             throw new Exception("Error al guardar en base de datos");
         }
+
+        $userId = (int) $pdo->lastInsertId();
+        $roomKey = bin2hex(random_bytes(16));
+
+        $roomStmt = $pdo->prepare("INSERT INTO chat_rooms (room_key, student_user_id) VALUES (?, ?)");
+        $roomStmt->execute([$roomKey, $userId]);
+
+        $pdo->commit();
+
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $userId;
+        $_SESSION['user'] = $username;
+        $_SESSION['role'] = 'alumno';
+        $_SESSION['room_key'] = $roomKey;
+
+        $_SESSION['temp_credentials'] = [
+            'user' => $username,
+            'pass' => $rawPassword
+        ];
+
+        header('Location: ../controllers/welcome.php');
+        exit;
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
         // Si falla, volvemos al login con error
         header('Location: ../../frontend/index.html?error=' . urlencode($e->getMessage()));
         exit;

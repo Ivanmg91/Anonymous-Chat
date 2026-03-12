@@ -4,38 +4,63 @@ session_start();
 require_once '../config/db.php';
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user'])) {
+if (!isset($_SESSION['user_id'], $_SESSION['user'])) {
     echo json_encode([]);
     exit;
 }
 
 $role = $_SESSION['role'] ?? 'alumno';
-$chat_room_to_read = '';
+$chatRoomKey = '';
+$chatRoomId = null;
 
 if ($role === 'alumno') {
-    // El alumno solo lee SU sala
-    $chat_room_to_read = $_SESSION['user'];
+    $roomStmt = $pdo->prepare("SELECT id, room_key FROM chat_rooms WHERE student_user_id = ? LIMIT 1");
+    $roomStmt->execute([$_SESSION['user_id']]);
+    $chatRoom = $roomStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$chatRoom) {
+        echo json_encode([]);
+        exit;
+    }
+
+    $chatRoomId = (int) $chatRoom['id'];
+    $chatRoomKey = $chatRoom['room_key'];
 } else {
-    // El profesor lee la sala que pida por ?chat_room=...
-    $chat_room_to_read = $_GET['chat_room'] ?? '';
+    $chatRoomKey = trim($_GET['chat_room'] ?? '');
 }
 
-if ($chat_room_to_read === '') {
-    echo json_encode([]); // Si no hay sala definida, devolvemos vacío
+if ($chatRoomId === null && $chatRoomKey === '') {
+    echo json_encode([]);
     exit;
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT user, message, date FROM mensajes WHERE chat_room = ? ORDER BY date ASC");
-    $stmt->execute([$chat_room_to_read]);
+    if ($chatRoomId === null) {
+        $roomStmt = $pdo->prepare("SELECT id FROM chat_rooms WHERE room_key = ? LIMIT 1");
+        $roomStmt->execute([$chatRoomKey]);
+        $chatRoomId = $roomStmt->fetchColumn();
+
+        if (!$chatRoomId) {
+            echo json_encode([]);
+            exit;
+        }
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT u.user AS user, m.message, m.created_at
+         FROM mensajes m
+         INNER JOIN usuarios u ON u.id = m.sender_user_id
+         WHERE m.chat_room_id = ?
+         ORDER BY m.created_at ASC, m.id ASC"
+    );
+    $stmt->execute([(int) $chatRoomId]);
     $mensajes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Añadimos un campo extra para que JS sepa si el mensaje es "mío"
+
     foreach ($mensajes as &$msg) {
         $msg['is_me'] = ($msg['user'] === $_SESSION['user']);
-        // Formateamos la fecha bonita (Ej: 14:30)
-        $msg['time'] = date('H:i', strtotime($msg['date']));
+        $msg['time'] = date('H:i', strtotime($msg['created_at']));
     }
+    unset($msg);
 
     echo json_encode($mensajes);
 } catch (PDOException $e) {

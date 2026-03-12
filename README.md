@@ -51,7 +51,7 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 │   ├── requirements.txt
 │   └── spam_detector.py            # API Flask para predicción de spam
 └── sql/
-	└── database.sql                # Inicialización de base de datos y datos de prueba
+    └── database.sql                # Inicialización de base de datos y datos de prueba
 ```
 
 ## Requisitos
@@ -171,8 +171,10 @@ Después accede a:
 
 El script `sql/database.sql` crea la base `login` con estas tablas:
 
-- `usuarios`: `user`, `password`, `role`
-- `mensajes`: `id`, `user`, `chat_room`, `message`, `date`
+- `usuarios`: `id`, `user`, `password`, `role`, timestamps
+- `chat_rooms`: `id`, `room_key`, `student_user_id`, timestamps
+- `mensajes`: `id`, `chat_room_id`, `sender_user_id`, `message`, `created_at`
+- `archivos`: tabla preparada para adjuntos, relacionada con sala, usuario y mensaje
 
 También inserta usuarios de prueba:
 

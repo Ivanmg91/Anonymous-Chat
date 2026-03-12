@@ -9,4 +9,4 @@ if [ ! -f "$SCRIPT_DIR/.env" ]; then
 fi
 
 cd "$SCRIPT_DIR"
-docker compose up -d --build
+docker compose up --build

@@ -14,15 +14,15 @@ if ($rol === 'alumno') {
 }
 
 try {
-    // CONSULTA SQL ROBUSTA
-    // Agrupa por sala y ordena para que salgan primero los que han hablado hace poco
-    $sql = "SELECT chat_room 
-            FROM mensajes 
-            GROUP BY chat_room 
-            ORDER BY MAX(date) DESC";
+    $sql = "SELECT cr.room_key, u.user AS student_name
+        FROM chat_rooms cr
+        INNER JOIN usuarios u ON u.id = cr.student_user_id
+        INNER JOIN mensajes m ON m.chat_room_id = cr.id
+        GROUP BY cr.id, cr.room_key, u.user
+        ORDER BY MAX(m.created_at) DESC";
             
     $stmt = $pdo->query($sql);
-    $salas = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $salas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode($salas);
 
