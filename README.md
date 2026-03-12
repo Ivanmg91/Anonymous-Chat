@@ -1,183 +1,252 @@
 # Chat Denuncias (Anonymous Chat)
 
-Un sistema de chat anónimo entre dos personas. Ideal para situaciones como un chat anónimo para jóvenes que sufren acoso.
+Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está implementado con PHP, MySQL y una interfaz web con JavaScript nativo. Incluye además un módulo Python para detección de spam, pero ese servicio no forma parte del flujo activo de la aplicación en su estado actual.
 
-## Estructura del Proyecto
+## Estado actual del proyecto
+
+- El acceso principal funciona desde la web en PHP.
+- El alumnado puede entrar de forma anónima y abrir un chat propio.
+- El profesorado puede ver conversaciones activas y responder por sala.
+- Existe rol `admin` en base de datos, pero no tiene panel implementado; actualmente muestra un mensaje de "Panel en construcción".
+- El detector de spam en Python está preparado de forma independiente, pero no está conectado al frontend ni al backend PHP.
+- En `docker/docker-compose.yml` el contenedor Python está comentado, por lo que el stack actual levanta solo MySQL, PHP/Apache y phpMyAdmin.
+
+## Estructura del proyecto
 
 ```text
-/chat-denuncias
-├── frontend/              # Interfaz de usuario web
-│   ├── css/              # Estilos CSS
-│   ├── js/               # Scripts JavaScript (app.js, chat.js, chat_profesor.js)
-│   └── index.html        # Página de inicio/login
-│
-├── backend/              # Lógica del servidor
-│   ├── api/              # Endpoints API
-│   │   ├── login.php
-│   │   ├── anonymous_login.php
-│   │   ├── logout.php
-│   │   ├── leer.php
-│   │   ├── enviar.php
-│   │   └── get_users.php
-│   ├── config/           # Configuración de base de datos
-│   │   ├── db.php
-│   │   ├── credentials.example.php
-│   │   └── credentials.local.php  # Local, ignorado por git
-│   └── controllers/      # Controladores de vistas
-│       ├── welcome.php
-│       ├── student_view.php
-│       └── teacher_dashboard.php
-│
-├── python-ia/           # Módulos de inteligencia artificial
-│   ├── spam_detector.py    # Detector de spam con modelo Keras
-│   ├── language_filter.py  # Filtro de lenguaje (placeholder)
-│   ├── requirements.txt    # Dependencias Python
-│   └── Dockerfile         # Imagen Docker para Python
-│
-├── sql/                 # Scripts de base de datos
-│   └── database.sql     # Inicialización de BD
-│
-├── docker/              # Configuración Docker
-│   ├── Dockerfile       # Imagen PHP + Apache
-│   └── docker-compose.yml  # Orquestación de contenedores
-│
-└── README.md           # Este archivo
+/Anonymous-Chat-
+├── index.php                       # Redirección a frontend/index.html
+├── README.md
+├── backend/
+│   ├── api/
+│   │   ├── anonymous_login.php     # Alta anónima y login automático
+│   │   ├── enviar.php              # Envío de mensajes
+│   │   ├── get_users.php           # Lista de chats para profesor/admin
+│   │   ├── leer.php                # Lectura de mensajes por sala
+│   │   ├── login.php               # Login normal
+│   │   └── logout.php              # Cierre de sesión
+│   ├── config/
+│   │   ├── credentials.example.php # Plantilla de credenciales locales
+│   │   ├── credentials.local.php   # Credenciales locales, ignorado por git
+│   │   └── db.php                  # Conexión PDO por variables de entorno o archivo local
+│   └── controllers/
+│       ├── student_view.php        # Vista de chat para alumnado
+│       ├── teacher_dashboard.php   # Panel de conversaciones del profesorado
+│       └── welcome.php             # Router por rol tras autenticación
+├── docker/
+│   ├── .env.example                # Variables de entorno de ejemplo para Docker
+│   ├── docker-compose.yml
+│   └── Dockerfile                  # PHP 8.2 + Apache + extensiones MySQL
+├── frontend/
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   ├── app.js                  # Login desde la pantalla inicial
+│   │   ├── chat.js                 # Chat del alumnado
+│   │   └── chat_profesor.js        # Panel y chat del profesorado
+│   └── index.html                  # Pantalla inicial
+├── python-ia/
+│   ├── Dockerfile
+│   ├── language_filter.py          # Placeholder, sin integración actual
+│   ├── requirements.txt
+│   └── spam_detector.py            # API Flask para predicción de spam
+└── sql/
+	└── database.sql                # Inicialización de base de datos y datos de prueba
 ```
 
 ## Requisitos
 
-- PHP 8.2+
-- Docker y Docker Compose (recomendado)
+### Para ejecutar la aplicación web
+
+- Docker y Docker Compose, recomendado
+- PHP 8.2+ con `pdo_mysql`
 - MySQL 8.0+
-- Python 3.12+ (para AI modules)
 
-## Instalación y Ejecución
+### Para ejecutar el servicio Python de spam por separado
 
-### Opción 1: Con Docker (Recomendado)
+- Python 3.12+
+- Dependencias de `python-ia/requirements.txt`
+- Un archivo de modelo llamado `modelo_spam_completo.keras` dentro de `python-ia/`
 
-```bash
-cd docker
-cp .env.example .env
-docker compose up -d --build
-```
+## Instalación recomendada: Docker
 
-Esto iniciará:
+La forma recomendada de ejecutar el proyecto es con Docker, y en este repositorio el arranque está planteado para hacerse mediante el script `docker/up.sh`. Ese script está diseñado para que el usuario no tenga que preparar nada más antes de levantar el entorno.
 
-- **MySQL Database**: `localhost:3306`
-- **PHP Apache**: `http://localhost:8080/frontend/index.html`
-- **Spam Detector (Python)**: `http://localhost:5001`
-- **phpMyAdmin**: `http://localhost:8081`
+Su función es simplificar el arranque al máximo:
 
-Las credenciales quedan en `docker/.env`, que no se versiona. Puedes dejar los valores del ejemplo para desarrollo local o cambiarlos antes de levantar el stack.
+- crea `docker/.env` automáticamente a partir de `docker/.env.example` si todavía no existe
+- entra en la carpeta correcta de Docker
+- ejecuta `docker compose up -d --build`
 
-### Acceso a phpMyAdmin
+La idea es que, para levantar el entorno Docker, el usuario solo tenga que lanzar un comando.
 
-Si levantas el entorno con Docker, puedes entrar en phpMyAdmin desde:
+El flujo Docker actualmente levanta estos servicios:
 
-- URL: `http://localhost:8081`
-- Servidor: `db`
-- Usuario recomendado: el que hayas definido en `docker/.env`
-- Contraseña: la que hayas definido en `docker/.env`
+- MySQL en `localhost:3306`
+- PHP + Apache en `http://localhost:8080`
+- phpMyAdmin en `http://localhost:8081`
 
-Tambien puedes acceder con el usuario definido para la aplicacion en `docker/.env`.
+El servicio Python no se levanta porque está comentado en `docker/docker-compose.yml`.
 
-Para la administracion de MySQL conviene usar `root` solo en phpMyAdmin o terminal. La aplicacion PHP deberia usar un usuario dedicado con permisos limitados sobre la base de datos `login`.
+### Pasos
 
-### Opción 2: Configuración Local
-
-Requiere PHP 8.2 con PDO_MySQL:
+La única forma documentada para levantar el entorno con Docker es usar el script de arranque:
 
 ```bash
-# Estando en la raíz del proyecto
-php -S localhost:8000
+./docker/up.sh
 ```
 
-Accede a: `http://localhost:8000/frontend/index.html`
+Con ese comando no hace falta copiar archivos manualmente ni preparar `docker/.env` a mano para el arranque inicial.
 
-## Base de Datos
+### Accesos
 
-La base de datos se inicializa automáticamente con:
+- Aplicación: `http://localhost:8080`
+- Frontend directo: `http://localhost:8080/frontend/index.html`
+- phpMyAdmin: `http://localhost:8081`
 
-- Tabla `usuarios` (user, password, role: admin|profesor|alumno)
-- Tabla `mensajes` (id, user, chat_room, message, date)
+La raíz del proyecto sirve `index.php`, que redirige automáticamente a `frontend/index.html`.
 
-Usuarios de prueba:
+### Variables usadas por Docker
 
-- Usuario: `test` | Contraseña: `password` | Rol: admin
-- Usuario: `profe` | Contraseña: `password` | Rol: profesor
+El script genera `docker/.env` automáticamente si falta. A partir de ese archivo, el contenedor PHP recibe estas variables:
 
-## Funcionalidades
+- `MYSQL_DATABASE`
+- `MYSQL_ROOT_PASSWORD`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
 
-- ✅ Chat anónimo entre estudiantes y profesores
-- ✅ Autenticación con roles (alumno, profesor, admin)
-- ✅ Sesiones seguras
-- ✅ Detector de spam integrado (Python + TensorFlow)
-- ✅ Interface responsiva
-- ✅ Módulo para filtrado de lenguaje
+Internamente PHP traduce esos valores a:
 
-## API Endpoints
+- `DB_HOST=db`
+- `DB_NAME=${MYSQL_DATABASE}`
+- `DB_PORT=3306`
+- `DB_USER=${MYSQL_USER}`
+- `DB_PASS=${MYSQL_PASSWORD}`
 
-El frontend se comunica con los siguientes endpoints:
+## Instalación alternativa: entorno local sin Docker
 
-- `POST /backend/api/login.php` - Autenticar usuario
-- `POST /backend/api/anonymous_login.php` - Crear cuenta anónima
-- `GET /backend/api/leer.php` - Leer mensajes
-- `POST /backend/api/enviar.php` - Enviar mensaje
-- `GET /backend/api/get_users.php` - Obtener lista de usuarios (solo profesores)
-- `GET /backend/api/logout.php` - Cerrar sesión
+Esta opción requiere más configuración manual. Si vas a ejecutar PHP directamente en local, necesitas tener MySQL corriendo y cargar la base de datos manualmente con `sql/database.sql`.
 
-## Configuración (Importante para las credenciales)
-
-La aplicación busca primero variables de entorno (`DB_HOST`, `DB_NAME`, `DB_PORT`, `DB_USER`, `DB_PASS`).
-Si no existen, usa `backend/config/credentials.local.php`, que está ignorado por git.
-
-En Docker no hace falta tocar PHP: `docker/docker-compose.yml` ya inyecta esas variables en el contenedor `php` a partir de `docker/.env`.
-
-Puedes crear `backend/config/credentials.local.php` copiando `backend/config/credentials.example.php`:
+### 1. Configura credenciales locales
 
 ```bash
 cp backend/config/credentials.example.php backend/config/credentials.local.php
 ```
 
-Despues, edita `backend/config/credentials.local.php` y rellena tus datos:
+Edita `backend/config/credentials.local.php` con tus valores reales.
 
-```php
-$db_host = 'tu_host';
-$db_name = 'tu_db';
-$db_port = 'tu_puerto';
-$db_user = 'tu_usuario';
-$db_pass = 'tu_contraseña';
+La aplicación busca credenciales en este orden:
+
+1. Variables de entorno `DB_HOST`, `DB_NAME`, `DB_PORT`, `DB_USER`, `DB_PASS`
+2. Archivo local `backend/config/credentials.local.php`
+
+### 2. Importa la base de datos
+
+Ejecuta el contenido de `sql/database.sql` sobre tu servidor MySQL.
+
+### 3. Lanza PHP
+
+```bash
+php -S localhost:8000
 ```
 
-Si vas a usar Docker, los valores deben coincidir con lo que tengas en `docker/.env`. Normalmente quedaria asi:
+Después accede a:
 
-```php
-$db_host = 'db';
-$db_name = 'login';
-$db_port = '3306';
-$db_user = 'chat_app';
-$db_pass = 'el_mismo_valor_de_MYSQL_PASSWORD';
-```
+- `http://localhost:8000`
+- o `http://localhost:8000/frontend/index.html`
 
-Si ejecutas PHP fuera de Docker y te conectas al MySQL publicado en tu maquina, normalmente tendras que usar:
+## Base de datos
 
-```php
-$db_host = '127.0.0.1';
-$db_name = 'login';
-$db_port = '3306';
-$db_user = 'root';
-$db_pass = 'password';
-```
+El script `sql/database.sql` crea la base `login` con estas tablas:
 
-## Seguridad
+- `usuarios`: `user`, `password`, `role`
+- `mensajes`: `id`, `user`, `chat_room`, `message`, `date`
 
-- ✅ Contraseñas hasheadas con `password_hash()`
-- ✅ Sesiones seguras (HttpOnly, SameSite=Strict)
-- ✅ Validación de roles en APIs
-- ✅ Protección CSRF mediante sesiones
+También inserta usuarios de prueba:
 
-## Notas de Desarrollo
+- `test` / `password` con rol `admin`
+- `profe` / `password` con rol `profesor`
 
-- Para usar el detector de spam, necesitas copiar el modelo `modelo_spam_completo.keras` a `python-ia/`
-- Los scripts JavaScript usan Fetch API con polling cada 2 segundos
-- El streaming de mensajes es en tiempo real mediante lecturas periódicas
+El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, contraseña aleatoria y rol `alumno`.
+
+## Flujo de la aplicación
+
+### Login normal
+
+- El formulario inicial llama a `backend/api/login.php`.
+- Si el login es correcto, redirige a `backend/controllers/welcome.php`.
+- `welcome.php` carga la vista correspondiente según el rol.
+
+### Login anónimo
+
+- El botón "Entrar como Anónimo" llama a `backend/api/anonymous_login.php`.
+- Se crea un usuario nuevo en la base de datos con rol `alumno`.
+- Se inicia sesión automáticamente.
+- La vista del alumno muestra un modal temporal con las credenciales generadas.
+
+### Flujo por roles
+
+- `alumno`: entra en `backend/controllers/student_view.php` y solo puede leer y escribir en su propia sala.
+- `profesor`: entra en `backend/controllers/teacher_dashboard.php` y puede listar salas activas y responder en la seleccionada.
+- `admin`: actualmente no tiene dashboard propio.
+
+## Endpoints disponibles
+
+- `POST /backend/api/login.php`: autentica usuario y guarda sesión.
+- `GET /backend/api/anonymous_login.php`: crea usuario anónimo, inicia sesión y redirige.
+- `GET /backend/api/leer.php`: lee mensajes. Para alumno usa su sesión; para profesor requiere `?chat_room=...`.
+- `POST /backend/api/enviar.php`: envía mensajes. Para profesor requiere `chat_room` en el JSON.
+- `GET /backend/api/get_users.php`: devuelve las salas activas ordenadas por actividad; accesible para profesor y admin.
+- `GET /backend/api/logout.php`: destruye la sesión y redirige al login.
+
+## Frontend actual
+
+- `frontend/js/app.js` gestiona el login con `fetch`.
+- `frontend/js/chat.js` actualiza el chat del alumno mediante polling cada 2 segundos.
+- `frontend/js/chat_profesor.js` refresca la lista de chats cada 5 segundos y los mensajes cada 2 segundos.
+
+No hay WebSockets ni tiempo real push; la actualización es por sondeo periódico.
+
+## Módulo Python de spam
+
+En `python-ia/spam_detector.py` hay una API Flask con endpoint:
+
+- `POST /predict` con un JSON del tipo `{ "texto": "..." }`
+
+El servicio carga el modelo `modelo_spam_completo.keras` y responde `SPAM` o `HAM`.
+
+Puntos importantes sobre este módulo:
+
+- No está conectado al flujo de mensajería PHP actual.
+- No se levanta por defecto con Docker porque el servicio está comentado.
+- `python-ia/language_filter.py` sigue siendo un placeholder.
+
+## Seguridad implementada actualmente
+
+- Contraseñas almacenadas con `password_hash()`.
+- Verificación con `password_verify()`.
+- Uso de sesiones PHP.
+- Restricción básica por rol en endpoints como `backend/api/get_users.php`.
+- Cookie de sesión con `HttpOnly`, `SameSite=Strict` y `session.use_strict_mode` en el flujo de login estándar.
+
+## Limitaciones actuales
+
+- El rol `admin` existe, pero no tiene panel funcional.
+- No hay integración activa del detector de spam en el chat.
+- No hay filtro de lenguaje operativo.
+- La actualización de mensajes depende de polling, no de comunicación en tiempo real.
+- La creación de usuarios anónimos genera credenciales aleatorias, pero no hay flujo adicional de recuperación.
+
+## Archivos clave
+
+- `index.php`
+- `frontend/index.html`
+- `backend/controllers/welcome.php`
+- `backend/api/login.php`
+- `backend/api/anonymous_login.php`
+- `backend/api/enviar.php`
+- `backend/api/leer.php`
+- `backend/api/get_users.php`
+- `backend/config/db.php`
+- `docker/docker-compose.yml`
+- `sql/database.sql`

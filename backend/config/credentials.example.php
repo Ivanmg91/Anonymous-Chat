@@ -1,9 +1,9 @@
 <?php
 // backend/config/credentials.example.php
 
-$db_host = 'tu_host';
-$db_name = 'tu_base_de_datos';
+$db_host = 'db';
+$db_name = 'login';
 $db_port = '3306';
-$db_user = 'tu_usuario';
-$db_pass = 'tu_contrasena';
+$db_user = 'chat_app';
+$db_pass = 'una_clave_segura';
 ?>
