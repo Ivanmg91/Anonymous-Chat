@@ -1,0 +1,61 @@
+services:
+  # Base de Datos
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ../sql/database.sql:/docker-entrypoint-initdb.d/database.sql
+
+  # Detector de SPAM (Python)
+  # spam_detector:
+  #   build:
+  #     context: ../python-ia
+  #   container_name: spam_detector
+  #   ports:
+  #     - "5001:5000"
+  #   volumes:
+  #     - ../python-ia:/app
+
+  # PHP con Apache
+  php:
+    build: .
+    container_name: php_apache
+    environment:
+      DB_HOST: db
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+    volumes:
+      - ../:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+      # - spam_detector
+
+  # phpMyAdmin para gestionar la DB visualmente
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: pma_gui
+    restart: always
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_ARBITRARY=1
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

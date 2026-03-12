@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Chat</title>
+    <!-- Enlazamos el CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="card">
+            <h2>Iniciar Sesión</h2>
+            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">
+                User: test | Password: password
+            </p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="text" id="user" placeholder="Usuario" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Contraseña" required autocomplete="current-password">
+                </div>
+                <button type="submit">Entrar</button>
+            </form>
+
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">¿Necesitas ayuda urgente?</p>
+                <a href="../backend/api/anonymous_login.php" style="text-decoration: none;">
+                    <button type="button" id="btnAnon" class="btn-secondary" style="width: 100%; cursor: pointer;">
+                        Entrar como Anónimo
+                    </button>
+                </a>
+            </div>
+            
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
