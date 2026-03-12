@@ -104,6 +104,18 @@ Con ese comando no hace falta copiar archivos manualmente ni preparar `docker/.e
 - Frontend directo: `http://localhost:8080/frontend/index.html`
 - phpMyAdmin: `http://localhost:8081`
 
+Para entrar en phpMyAdmin, usa las credenciales MySQL definidas en `docker/.env`. Si todavía no existe ese archivo, `docker/up.sh` lo crea automáticamente a partir de `docker/.env.example`, así que por defecto los valores iniciales son:
+
+- Servidor: `db`
+- Puerto: `3306`
+- Base de datos: `login`
+- Usuario de aplicación: `chat_app`
+- Contraseña de aplicación: `una_clave_segura`
+- Usuario root: `root`
+- Contraseña root: `root`
+
+Puedes acceder con `chat_app` o con `root`. Si has cambiado `docker/.env`, phpMyAdmin usará esos nuevos valores en lugar de los de ejemplo.
+
 La raíz del proyecto sirve `index.php`, que redirige automáticamente a `frontend/index.html`.
 
 ### Variables usadas por Docker
