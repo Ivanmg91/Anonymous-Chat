@@ -46,6 +46,16 @@ try {
         }
     }
 
+    // Recoger el estado de la sala cada 2s para que el frontend sepa si la sala sigue activa o no
+    $stmt = $pdo->prepare(
+        "SELECT estado FROM chat_rooms WHERE id = ? LIMIT 1"
+    );
+    $stmt->execute([(int) $chatRoomId]);
+    $estado = $stmt->fetchColumn();
+
+    $_SESSION['chat_room_estado'] = $estado;
+
+
     $stmt = $pdo->prepare(
         "SELECT u.user AS user, m.message, m.created_at, a.storage_path AS image_url, a.mime_type
          FROM mensajes m

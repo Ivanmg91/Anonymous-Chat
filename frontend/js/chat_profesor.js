@@ -7,6 +7,18 @@ const chatTitle = document.getElementById('chatTitle');
 const inputArea = document.getElementById('inputArea');
 const chatForm = document.getElementById('chatForm');
 const messageInput = document.getElementById('messageInput');
+const finalizeChatBtn = document.getElementById('finalizeChatBtn');
+const reviewChatBtn = document.getElementById('reviewChatBtn');
+
+function updateChatActionLinks() {
+    const encodedRoom = encodeURIComponent(currentChatRoom);
+    if (finalizeChatBtn) {
+        finalizeChatBtn.href = `../api/change_chat_state.php?state=finalizado&chat_room=${encodedRoom}`;
+    }
+    if (reviewChatBtn) {
+        reviewChatBtn.href = `../api/change_chat_state.php?state=abierto&chat_room=${encodedRoom}`;
+    }
+}
 
 // CARGAR LISTA DE ALUMNOS (API Nueva)
 async function loadUsers() {
@@ -24,7 +36,7 @@ async function loadUsers() {
         users.forEach(room => {
             const li = document.createElement('li');
             li.className = `user-item ${room.room_key === currentChatRoom ? 'active' : ''}`;
-            li.textContent = room.student_name;
+            li.textContent = `${room.student_name} - ${room.estado}`;
             li.onclick = () => selectUser(room);
             usersList.appendChild(li);
         });
@@ -36,9 +48,13 @@ function selectUser(room) {
     currentChatRoom = room.room_key;
     currentStudentName = room.student_name;
     chatTitle.textContent = "Chat con: " + currentStudentName;
+    updateChatActionLinks();
     inputArea.style.display = 'flex'; // Mostrar la caja de escribir
     loadMessages(); // Cargar mensajes inmediatamente
     loadUsers(); // Para actualizar el estilo visual 'active'
+
+    finalizeChatBtn.style.visibility = 'visible';
+    reviewChatBtn.style.visibility = 'visible';
 }
 
 // CARGAR MENSAJES DEL ALUMNO SELECCIONADO
@@ -88,6 +104,7 @@ chatForm.addEventListener('submit', async (e) => {
     // Preparamos el FormData para enviar el mensaje y la imagen (si existe)
     const formData = new FormData();
     formData.append('message', text);
+    formData.append('chat_room', currentChatRoom);
 
 
     // Si hay una imagen seleccionada, la agregamos al FormData
@@ -123,4 +140,5 @@ chatForm.addEventListener('submit', async (e) => {
 // Bucles de refresco
 setInterval(loadUsers, 5000); // Actualizar lista de usuarios cada 5s
 setInterval(loadMessages, 2000); // Actualizar mensajes cada 2s
+updateChatActionLinks();
 loadUsers(); // Carga inicial

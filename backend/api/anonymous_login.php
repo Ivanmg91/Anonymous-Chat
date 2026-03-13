@@ -22,14 +22,18 @@
             throw new Exception("Error al guardar en base de datos");
         }
 
+        // Obtener el ID del usuario recién creado
         $userId = (int) $pdo->lastInsertId();
         $roomKey = bin2hex(random_bytes(16));
 
+        // Crear la sala de chat para el usuario anónimo
         $roomStmt = $pdo->prepare("INSERT INTO chat_rooms (room_key, student_user_id) VALUES (?, ?)");
         $roomStmt->execute([$roomKey, $userId]);
 
+        // Si todo va bien, confirmamos la transacción
         $pdo->commit();
 
+        // Iniciar sesión con los datos generados
         session_regenerate_id(true);
         $_SESSION['user_id'] = $userId;
         $_SESSION['user'] = $username;

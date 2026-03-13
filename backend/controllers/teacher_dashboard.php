@@ -23,6 +23,10 @@
             <main class="main-chat">
                 <header class="chat-header">
                     <strong id="chatTitle" style="color: white;">Selecciona un alumno</strong>
+                    <div class="chat-header-actions">
+                        <a id="finalizeChatBtn" class="header-action-btn header-action-danger">Finalizar Chat</a>
+                        <a id="reviewChatBtn" class="header-action-btn header-action-warning">Mandar a Revision</a>
+                    </div>
                 </header>
                 
                 <div id="chat-box" class="chat-messages">

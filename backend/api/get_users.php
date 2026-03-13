@@ -14,11 +14,11 @@ if ($rol === 'alumno') {
 }
 
 try {
-    $sql = "SELECT cr.room_key, u.user AS student_name
+    $sql = "SELECT cr.room_key, cr.estado, u.user AS student_name
         FROM chat_rooms cr
         INNER JOIN usuarios u ON u.id = cr.student_user_id
         INNER JOIN mensajes m ON m.chat_room_id = cr.id
-        GROUP BY cr.id, cr.room_key, u.user
+        GROUP BY cr.id, cr.room_key, cr.estado, u.user
         ORDER BY MAX(m.created_at) DESC";
             
     $stmt = $pdo->query($sql);

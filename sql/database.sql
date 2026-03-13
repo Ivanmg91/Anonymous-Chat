@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS chat_rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_key CHAR(32) NOT NULL,
     student_user_id INT NOT NULL,
+    estado ENUM('abierto', 'finalizado') NOT NULL DEFAULT 'abierto',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_chat_rooms_room_key (room_key),

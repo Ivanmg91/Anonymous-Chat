@@ -8,6 +8,9 @@ if (isset($_SESSION['temp_credentials'])) {
     $newPass = $_SESSION['temp_credentials']['pass'];
     unset($_SESSION['temp_credentials']);
 }
+
+// Si aún no se ha consultado leer.php, la clave puede no existir en sesión.
+$chatRoomEstado = $_SESSION['chat_room_estado'] ?? 'abierto';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -32,27 +35,54 @@ if (isset($_SESSION['temp_credentials'])) {
     </div>
     <?php endif; ?>
 
+    <!-- Si clickas en el Nueva del dropdown de salir lanzara un modal de confirmación -->
+    <div class="modal-overlay" id="confirmModal" style="display:none;">
+        <div class="modal-content">
+            <h2>¿Quieres empezar un nuevo chat?</h2>
+            <p>Esto cerrará y borrará tu chat y usuario actual</p>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button class="btn" onclick="document.getElementById('confirmModal').style.display='none'">Cancelar</button>
+                <a href="../api/delete_chat.php" class="btn" style="background:#0f3460; color:white;">Confirmar</a>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <header class="chat-header">
             <div class="user-info">
                 <strong>Hola, <?php echo htmlspecialchars($_SESSION['user']); ?></strong>
             </div>
-            <a href="../api/logout.php" class="btn btn-small" style="width: auto; background: #555;">Salir</a>
+            <details class="header-menu">
+                <summary class="btn btn-small header-menu-trigger">Salir</summary>
+                <div class="header-menu-dropdown">
+                    <a href="../api/logout.php" class="header-menu-item">Cerrar Chat</a>
+                    <!-- <a href="#" class="header-menu-item" onclick="document.getElementById('confirmModal').style.display='block'">Acabar Chat</a> -->
+                </div>
+            </details>
         </header>
 
         <div id="chat-box" class="chat-messages">
             <!-- Mensajes aquí -->
         </div>
 
-        <footer class="chat-input-area">
+        <?php if ($chatRoomEstado === 'abierto'): ?>
+            <footer class="chat-input-area">
             <form id="chatForm" style="display:flex; width:100%; gap:10px; align-items:center; flex-wrap:wrap;">
-                <input type="file" id="imageInput" accept="image/*" style="display:none;">
-                <label for="imageInput" class="btn btn-small" style="width:auto; white-space:nowrap; background:#0f3460;">Subir imagen</label>
-                <span id="selectedImageName" style="font-size:0.9rem; color:var(--text-muted); min-width:160px;">Ninguna imagen seleccionada</span>
                 <input type="text" id="messageInput" placeholder="Escribe tu problema aquí..." autocomplete="off" style="flex:1; min-width:220px;">
+                    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+                    <label for="imageInput" class="btn btn-small" style="width:auto; white-space:nowrap; background:#0f3460;">Subir imagen</label>
+                    <!-- <input type="file" id="imageInput" accept="image/*" style="display:none;"> -->
+                    <!-- <span id="selectedImageName" style="font-size:0.9rem; color:var(--text-muted); min-width:160px;">Ninguna imagen seleccionada</span> -->
+                </input>
                 <button type="submit" style="width: 50px;">➤</button>
             </form>
         </footer>
+        <?php else: ?>
+            <div style="padding:20px; text-align:center; color:var(--text-muted);">
+                <p>La sala ha sido cerrada por el profesor.</p>
+                <p>Si crees que es un error, contacta con tu profesor para más información.</p>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Usamos el JS estándar -->

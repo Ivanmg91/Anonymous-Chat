@@ -22,7 +22,16 @@ if (ini_get("session.use_cookies")) {
 // Destruir sesión en servidor
 session_destroy();
 
-// Redirigir
-header('Location: ../../frontend/index.html');
+// Redirigir. Permitimos un destino interno opcional para reutilizar este endpoint.
+$defaultRedirect = '../../frontend/index.html';
+$next = isset($_GET['next']) ? (string) $_GET['next'] : $defaultRedirect;
+
+// Solo permitimos rutas internas absolutas para evitar open redirect.
+if ($next !== '' && $next[0] === '/') {
+    header('Location: ' . $next);
+    exit;
+}
+
+header('Location: ' . $defaultRedirect);
 exit;
 ?>
