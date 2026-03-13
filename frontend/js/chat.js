@@ -3,6 +3,27 @@ const chatForm = document.getElementById('chatForm');
 const messageInput = document.getElementById('messageInput');
 const imageInput = document.getElementById('imageInput');
 const selectedImageName = document.getElementById('selectedImageName');
+let chatEnabled = true;
+let closedNoticeShown = false;
+
+function setChatEnabled(enabled) {
+    chatEnabled = enabled;
+    if (!chatForm) return;
+
+    const controls = chatForm.querySelectorAll('input, button');
+    controls.forEach(control => {
+        control.disabled = !enabled;
+    });
+}
+
+function showClosedNotice(state) {
+    if (closedNoticeShown || !chatBox) return;
+    const div = document.createElement('div');
+    div.className = 'message system';
+    div.innerHTML = `<p>El chat fue cerrado por el profesor (estado: ${state}).</p>`;
+    chatBox.appendChild(div);
+    closedNoticeShown = true;
+}
 
 // Mostrar el nombre del archivo seleccionado (si existe)
 if (imageInput && selectedImageName) {
@@ -20,6 +41,14 @@ async function loadMessages() {
         // Alumno llama sin parámetros -> el PHP asume su propia sesión
         const response = await fetch('../api/leer.php'); 
         const messages = await response.json();
+        const chatState = response.headers.get('X-Chat-State');
+
+        if (chatState && chatState !== 'abierto') {
+            setChatEnabled(false);
+        } else {
+            setChatEnabled(true);
+            closedNoticeShown = false;
+        }
 
         chatBox.innerHTML = ''; // Limpiamos para redibujar (simple version)
 
@@ -46,6 +75,10 @@ async function loadMessages() {
             chatBox.appendChild(div);
         });
 
+        if (chatState && chatState !== 'abierto') {
+            showClosedNotice(chatState);
+        }
+
         
         // Auto scroll abajo (opcional, pero recomendado)
         // chatBox.scrollTop = chatBox.scrollHeight;
@@ -58,6 +91,8 @@ async function loadMessages() {
 // ENVIAR MENSAJE
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!chatEnabled) return;
+
     const text = messageInput.value.trim();
     const selectedFile = imageInput && imageInput.files ? imageInput.files[0] : null;
 

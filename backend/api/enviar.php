@@ -65,6 +65,14 @@ if (($_SESSION['role'] ?? 'alumno') === 'alumno') {
     }
 }
 
+$stateStmt = $pdo->prepare('SELECT estado FROM chat_rooms WHERE id = ? LIMIT 1');
+$stateStmt->execute([(int) $chatRoomId]);
+$chatState = (string) $stateStmt->fetchColumn();
+if ($chatState !== 'abierto') {
+    echo json_encode(['success' => false, 'message' => 'Chat no disponible para nuevos mensajes']);
+    exit;
+}
+
 $storedName = null;
 $publicPath = null;
 $absolutePath = null;

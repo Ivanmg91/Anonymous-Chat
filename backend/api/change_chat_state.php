@@ -4,7 +4,7 @@ include_once '../config/db.php';
 
 $state = trim((string) ($_GET['state'] ?? ''));
 $chatRoomKey = trim((string) ($_GET['chat_room'] ?? ''));
-$allowedStates = ['abierto', 'finalizado'];
+$allowedStates = ['abierto', 'finalizado', 'revision'];
 
 if (!isset($_SESSION['user_id'], $_SESSION['role']) || $_SESSION['role'] === 'alumno') {
     header('Location: ../../frontend/index.html?error=' . urlencode('No autorizado'));

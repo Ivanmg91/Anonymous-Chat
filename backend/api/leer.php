@@ -54,6 +54,7 @@ try {
     $estado = $stmt->fetchColumn();
 
     $_SESSION['chat_room_estado'] = $estado;
+    header('X-Chat-State: ' . ($estado ?: 'desconocido'));
 
 
     $stmt = $pdo->prepare(

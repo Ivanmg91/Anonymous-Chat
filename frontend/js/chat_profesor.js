@@ -16,7 +16,7 @@ function updateChatActionLinks() {
         finalizeChatBtn.href = `../api/change_chat_state.php?state=finalizado&chat_room=${encodedRoom}`;
     }
     if (reviewChatBtn) {
-        reviewChatBtn.href = `../api/change_chat_state.php?state=abierto&chat_room=${encodedRoom}`;
+        reviewChatBtn.href = `../api/change_chat_state.php?state=revision&chat_room=${encodedRoom}`;
     }
 }
 
