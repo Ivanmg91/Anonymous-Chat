@@ -47,6 +47,25 @@
                     <li class="admin-empty">Cargando...</li>
                 </ul>
             </section>
+
+            <section class="admin-card admin-chat-card">
+                <div class="admin-list-header">
+                    <h3>Chats</h3>
+                    <button id="refreshChats" class="btn btn-small" type="button">Actualizar</button>
+                </div>
+
+                <div class="admin-chat-controls">
+                    <select id="chatRoomSelect"></select>
+                    <select id="chatStateSelect"></select>
+                    <button id="applyChatState" class="btn btn-small" type="button">Cambiar estado</button>
+                </div>
+
+                <p id="adminChatMeta" class="admin-chat-meta">Selecciona un chat para ver su historial.</p>
+
+                <div id="adminChatMessages" class="admin-chat-messages">
+                    <div class="admin-empty">No hay chat seleccionado.</div>
+                </div>
+            </section>
         </main>
     </div>
 

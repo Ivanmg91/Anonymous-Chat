@@ -7,8 +7,9 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 - El acceso principal funciona desde la web en PHP.
 - El alumnado puede entrar de forma anónima y abrir un chat propio.
 - El profesorado puede ver conversaciones activas y responder por sala.
-- El rol `admin` ya tiene panel funcional para alta, listado y borrado de usuarios `profesor` y `alumno`.
-- Profesor y admin pueden cambiar el estado de una sala (`abierto`, `revision`, `finalizado`) desde el flujo de gestión.
+- El rol `admin` tiene panel funcional para alta, listado y borrado de usuarios `profesor` y `alumno`.
+- El panel `admin` también permite listar chats profesor-alumno, ver su historial y cambiar su estado a cualquier valor permitido en base de datos.
+- Profesor puede cambiar el estado de una sala (`revision`, `finalizado`) desde el flujo de gestión. Admin puede cambiar a todos los estados.
 - El detector de spam en Python está preparado de forma independiente, pero no está conectado al frontend ni al backend PHP.
 - En `docker/docker-compose.yml` el contenedor Python está comentado, por lo que el stack actual levanta solo MySQL, PHP/Apache y phpMyAdmin.
 
@@ -20,6 +21,7 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 ├── README.md
 ├── backend/
 │   ├── api/
+│   │   ├── admin_chats.php         # Gestión de chats para admin (listado, historial y cambio de estado)
 │   │   ├── admin_users.php         # CRUD básico de usuarios para panel admin
 │   │   ├── anonymous_login.php     # Alta anónima y login automático
 │   │   ├── change_chat_state.php   # Cambio de estado de salas
@@ -46,7 +48,7 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 │   ├── css/
 │   │   └── style.css
 │   ├── js/
-│   │   ├── admin_panel.js          # Gestión de usuarios desde panel admin
+│   │   ├── admin_panel.js          # Gestión de usuarios y chats desde panel admin
 │   │   ├── app.js                  # Login desde la pantalla inicial
 │   │   ├── chat.js                 # Chat del alumnado
 │   │   └── chat_profesor.js        # Panel y chat del profesorado
@@ -100,7 +102,7 @@ El servicio Python no se levanta porque está comentado en `docker/docker-compos
 La única forma documentada para levantar el entorno con Docker es usar el script de arranque:
 
 ```bash
-./docker/up.sh
+sh ./docker/up.sh
 ```
 
 Con ese comando no hace falta copiar archivos manualmente ni preparar `docker/.env` a mano para el arranque inicial.
@@ -109,7 +111,7 @@ Tampoco hace falta borrar el volumen para que se creen las tablas que falten, po
 Si quieres reiniciar el entorno completo y dejar la app en estado limpio para pruebas, puedes usar:
 
 ```bash
-./docker/reset.sh
+sh ./docker/reset.sh
 ```
 
 Ese script hace lo siguiente:
@@ -202,7 +204,7 @@ El script `sql/database.sql` crea la base `login` con estas tablas:
 
 También inserta usuarios de prueba:
 
-- `test` / `password` con rol `admin`
+- `test` / `password` con rol `admin` (admin de pruebas)
 - `profe` / `password` con rol `profesor`
 
 El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, contraseña aleatoria y rol `alumno`.
@@ -226,7 +228,12 @@ El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, c
 
 - `alumno`: entra en `backend/controllers/student_view.php` y solo puede leer y escribir en su propia sala.
 - `profesor`: entra en `backend/controllers/teacher_dashboard.php`, puede listar salas activas, responder en la seleccionada y cambiar estado de sala.
-- `admin`: entra en `backend/controllers/admin_dashboard.php`, puede crear usuarios (`profesor`/`alumno`), listarlos y eliminarlos desde el panel.
+- `admin`: entra en `backend/controllers/admin_dashboard.php` y puede:
+    - crear usuarios (`profesor`/`alumno`)
+    - listar y eliminar usuarios
+    - listar chats profesor-alumno
+    - ver historial de mensajes por chat
+    - cambiar el estado de cualquier chat a cualquier estado permitido por la columna `chat_rooms.estado`
 
 ## Endpoints disponibles
 
@@ -238,6 +245,9 @@ El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, c
 - `GET /backend/api/admin_users.php`: devuelve usuarios agrupados por rol (`profesor`, `alumno`). Solo admin.
 - `POST /backend/api/admin_users.php`: crea usuario con rol `profesor` o `alumno`. Solo admin.
 - `DELETE /backend/api/admin_users.php`: elimina un usuario por ID (excepto el propio admin autenticado). Solo admin.
+- `GET /backend/api/admin_chats.php`: devuelve listado de chats y lista de estados permitidos. Solo admin.
+- `GET /backend/api/admin_chats.php?chat_room=...`: devuelve historial de mensajes de una sala. Solo admin.
+- `PATCH /backend/api/admin_chats.php`: actualiza estado de una sala con JSON `{ "chat_room": "...", "state": "..." }`. Solo admin.
 - `GET /backend/api/change_chat_state.php?state=...&chat_room=...`: cambia estado de una sala. Acceso profesor/admin.
 - `GET /backend/api/delete_chat.php`: elimina el usuario en sesión y su rastro asociado (por cascada), luego hace logout.
 - `GET /backend/api/logout.php`: destruye la sesión y redirige al login.
@@ -247,7 +257,11 @@ El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, c
 - `frontend/js/app.js` gestiona el login con `fetch`.
 - `frontend/js/chat.js` actualiza el chat del alumno mediante polling cada 2 segundos.
 - `frontend/js/chat_profesor.js` refresca la lista de chats cada 5 segundos y los mensajes cada 2 segundos.
-- `frontend/js/admin_panel.js` gestiona altas/bajas de usuarios y refresco de listas en el panel admin.
+- `frontend/js/admin_panel.js` gestiona:
+    - altas/bajas de usuarios
+    - carga de chats y estados disponibles
+    - visualización del historial del chat seleccionado
+    - cambio de estado de chat desde el panel admin
 
 No hay WebSockets ni tiempo real push; la actualización es por sondeo periódico.
 
@@ -292,6 +306,7 @@ Puntos importantes sobre este módulo:
 - `backend/api/leer.php`
 - `backend/api/get_users.php`
 - `backend/api/admin_users.php`
+- `backend/api/admin_chats.php`
 - `backend/api/change_chat_state.php`
 - `backend/config/db.php`
 - `docker/docker-compose.yml`

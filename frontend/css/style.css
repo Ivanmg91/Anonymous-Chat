@@ -461,6 +461,70 @@ button:active { transform: scale(0.98); }
     color: #ff8f8f;
 }
 
+.admin-chat-card {
+    min-height: 420px;
+    grid-column: 1 / -1;
+}
+
+.admin-chat-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.admin-chat-controls select {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+}
+
+.admin-chat-meta {
+    margin: 0 0 10px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.admin-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.admin-chat-message {
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(255,255,255,0.06);
+}
+
+.admin-chat-message.profesor {
+    border-left: 3px solid #ffb84c;
+}
+
+.admin-chat-message.alumno {
+    border-left: 3px solid #00ff88;
+}
+
+.admin-chat-message.admin {
+    border-left: 3px solid #e94560;
+}
+
+@media (max-width: 700px) {
+    .admin-chat-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 980px) {
     .admin-main {
         grid-template-columns: 1fr;
