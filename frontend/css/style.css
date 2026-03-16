@@ -223,6 +223,21 @@ button:active { transform: scale(0.98); }
     color: var(--text-muted);
 }
 
+.message.blocked {
+    align-self: flex-end;
+    background-color: #5a5a5a;
+    color: #f1f1f1;
+    border: 1px dashed rgba(255,255,255,0.35);
+    opacity: 0.9;
+}
+
+.message .blocked-note {
+    margin: 8px 0 0;
+    font-size: 0.78rem;
+    color: #dddddd;
+    opacity: 0.95;
+}
+
 .message .meta {
     margin-bottom: 6px;
     font-size: 0.8rem;

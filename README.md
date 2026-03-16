@@ -7,7 +7,8 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 - El acceso principal funciona desde la web en PHP.
 - El alumnado puede entrar de forma anónima y abrir un chat propio.
 - El profesorado puede ver conversaciones activas y responder por sala.
-- Existe rol `admin` en base de datos, pero no tiene panel implementado; actualmente muestra un mensaje de "Panel en construcción".
+- El rol `admin` ya tiene panel funcional para alta, listado y borrado de usuarios `profesor` y `alumno`.
+- Profesor y admin pueden cambiar el estado de una sala (`abierto`, `revision`, `finalizado`) desde el flujo de gestión.
 - El detector de spam en Python está preparado de forma independiente, pero no está conectado al frontend ni al backend PHP.
 - En `docker/docker-compose.yml` el contenedor Python está comentado, por lo que el stack actual levanta solo MySQL, PHP/Apache y phpMyAdmin.
 
@@ -19,7 +20,10 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 ├── README.md
 ├── backend/
 │   ├── api/
+│   │   ├── admin_users.php         # CRUD básico de usuarios para panel admin
 │   │   ├── anonymous_login.php     # Alta anónima y login automático
+│   │   ├── change_chat_state.php   # Cambio de estado de salas
+│   │   ├── delete_chat.php         # Eliminación de usuario/sesión actual
 │   │   ├── enviar.php              # Envío de mensajes
 │   │   ├── get_users.php           # Lista de chats para profesor/admin
 │   │   ├── leer.php                # Lectura de mensajes por sala
@@ -30,6 +34,7 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 │   │   ├── credentials.local.php   # Credenciales locales, ignorado por git
 │   │   └── db.php                  # Conexión PDO por variables de entorno o archivo local
 │   └── controllers/
+│       ├── admin_dashboard.php     # Panel de administración
 │       ├── student_view.php        # Vista de chat para alumnado
 │       ├── teacher_dashboard.php   # Panel de conversaciones del profesorado
 │       └── welcome.php             # Router por rol tras autenticación
@@ -41,6 +46,7 @@ Aplicación web de chat anónimo entre alumnado y profesorado. El proyecto está
 │   ├── css/
 │   │   └── style.css
 │   ├── js/
+│   │   ├── admin_panel.js          # Gestión de usuarios desde panel admin
 │   │   ├── app.js                  # Login desde la pantalla inicial
 │   │   ├── chat.js                 # Chat del alumnado
 │   │   └── chat_profesor.js        # Panel y chat del profesorado
@@ -219,16 +225,21 @@ El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, c
 ### Flujo por roles
 
 - `alumno`: entra en `backend/controllers/student_view.php` y solo puede leer y escribir en su propia sala.
-- `profesor`: entra en `backend/controllers/teacher_dashboard.php` y puede listar salas activas y responder en la seleccionada.
-- `admin`: actualmente no tiene dashboard propio.
+- `profesor`: entra en `backend/controllers/teacher_dashboard.php`, puede listar salas activas, responder en la seleccionada y cambiar estado de sala.
+- `admin`: entra en `backend/controllers/admin_dashboard.php`, puede crear usuarios (`profesor`/`alumno`), listarlos y eliminarlos desde el panel.
 
 ## Endpoints disponibles
 
 - `POST /backend/api/login.php`: autentica usuario y guarda sesión.
 - `GET /backend/api/anonymous_login.php`: crea usuario anónimo, inicia sesión y redirige.
-- `GET /backend/api/leer.php`: lee mensajes. Para alumno usa su sesión; para profesor requiere `?chat_room=...`.
-- `POST /backend/api/enviar.php`: envía mensajes. Para profesor requiere `chat_room` en el JSON.
+- `GET /backend/api/leer.php`: lee mensajes. Para alumno usa su sesión; para profesor/admin requiere `?chat_room=...`.
+- `POST /backend/api/enviar.php`: envía mensajes (texto y opcionalmente imagen). Para profesor/admin requiere `chat_room`.
 - `GET /backend/api/get_users.php`: devuelve las salas activas ordenadas por actividad; accesible para profesor y admin.
+- `GET /backend/api/admin_users.php`: devuelve usuarios agrupados por rol (`profesor`, `alumno`). Solo admin.
+- `POST /backend/api/admin_users.php`: crea usuario con rol `profesor` o `alumno`. Solo admin.
+- `DELETE /backend/api/admin_users.php`: elimina un usuario por ID (excepto el propio admin autenticado). Solo admin.
+- `GET /backend/api/change_chat_state.php?state=...&chat_room=...`: cambia estado de una sala. Acceso profesor/admin.
+- `GET /backend/api/delete_chat.php`: elimina el usuario en sesión y su rastro asociado (por cascada), luego hace logout.
 - `GET /backend/api/logout.php`: destruye la sesión y redirige al login.
 
 ## Frontend actual
@@ -236,6 +247,7 @@ El login anónimo genera automáticamente un usuario con formato `anon_xxxxx`, c
 - `frontend/js/app.js` gestiona el login con `fetch`.
 - `frontend/js/chat.js` actualiza el chat del alumno mediante polling cada 2 segundos.
 - `frontend/js/chat_profesor.js` refresca la lista de chats cada 5 segundos y los mensajes cada 2 segundos.
+- `frontend/js/admin_panel.js` gestiona altas/bajas de usuarios y refresco de listas en el panel admin.
 
 No hay WebSockets ni tiempo real push; la actualización es por sondeo periódico.
 
@@ -263,7 +275,6 @@ Puntos importantes sobre este módulo:
 
 ## Limitaciones actuales
 
-- El rol `admin` existe, pero no tiene panel funcional.
 - No hay integración activa del detector de spam en el chat.
 - No hay filtro de lenguaje operativo.
 - La actualización de mensajes depende de polling, no de comunicación en tiempo real.
@@ -274,11 +285,14 @@ Puntos importantes sobre este módulo:
 - `index.php`
 - `frontend/index.html`
 - `backend/controllers/welcome.php`
+- `backend/controllers/admin_dashboard.php`
 - `backend/api/login.php`
 - `backend/api/anonymous_login.php`
 - `backend/api/enviar.php`
 - `backend/api/leer.php`
 - `backend/api/get_users.php`
+- `backend/api/admin_users.php`
+- `backend/api/change_chat_state.php`
 - `backend/config/db.php`
 - `docker/docker-compose.yml`
 - `sql/database.sql`

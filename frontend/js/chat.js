@@ -5,6 +5,36 @@ const imageInput = document.getElementById('imageInput');
 const selectedImageName = document.getElementById('selectedImageName');
 let chatEnabled = true;
 let closedNoticeShown = false;
+const blockedLocalMessages = [];
+
+function getCurrentTimeLabel() {
+    const now = new Date();
+    return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+function appendBlockedLocalMessage(text) {
+    blockedLocalMessages.push({
+        message: text,
+        time: getCurrentTimeLabel(),
+        user: 'Tú',
+    });
+}
+
+function renderBlockedLocalMessages() {
+    blockedLocalMessages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message blocked';
+
+        const textHtml = msg.message ? `<p>${msg.message}</p>` : '';
+        div.innerHTML = `
+            <div class="meta">${msg.user} - ${msg.time}</div>
+            ${textHtml}
+            <p class="blocked-note">Mensaje no enviado por spam</p>
+        `;
+
+        chatBox.appendChild(div);
+    });
+}
 
 function setChatEnabled(enabled) {
     chatEnabled = enabled;
@@ -75,6 +105,8 @@ async function loadMessages() {
             chatBox.appendChild(div);
         });
 
+        renderBlockedLocalMessages();
+
         if (chatState && chatState !== 'abierto') {
             showClosedNotice(chatState);
         }
@@ -118,6 +150,19 @@ chatForm.addEventListener('submit', async (e) => {
     // El backend devuelve un JSON con { success: true/false, message: "..." }
     const result = await response.json();
     if (!result.success) {
+        if (typeof result.message === 'string' && result.message.toLowerCase().includes('spam')) {
+            appendBlockedLocalMessage(text);
+            messageInput.value = '';
+            if (imageInput) {
+                imageInput.value = '';
+            }
+            if (selectedImageName) {
+                selectedImageName.textContent = 'Ninguna imagen seleccionada';
+            }
+            loadMessages();
+            return;
+        }
+
         console.error('Error enviando mensaje:', result.message);
         return;
     }

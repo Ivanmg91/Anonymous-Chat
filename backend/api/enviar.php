@@ -73,6 +73,36 @@ if ($chatState !== 'abierto') {
     exit;
 }
 
+// Filtro de SPAM por API interna (fail-open si el servicio no responde).
+if ($mensaje !== '') {
+    $spamApiUrl = getenv('SPAM_API_URL') ?: 'http://spam_detector:5000/predict';
+    $spamPayload = json_encode(['texto' => $mensaje], JSON_UNESCAPED_UNICODE);
+
+    if ($spamPayload !== false) {
+        $spamContext = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => $spamPayload,
+                'timeout' => 1.5,
+                'ignore_errors' => true,
+            ],
+        ]);
+
+        $spamRawResponse = @file_get_contents($spamApiUrl, false, $spamContext);
+
+        if ($spamRawResponse !== false) {
+            $spamResponse = json_decode($spamRawResponse, true);
+            $spamResultado = strtoupper((string) ($spamResponse['resultado'] ?? ''));
+
+            if ($spamResultado === 'SPAM') {
+                echo json_encode(['success' => false, 'message' => 'Mensaje bloqueado por deteccion de spam']);
+                exit;
+            }
+        }
+    }
+}
+
 $storedName = null;
 $publicPath = null;
 $absolutePath = null;

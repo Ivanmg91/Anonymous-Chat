@@ -1,5 +1,6 @@
 let currentChatRoom = null;
 let currentStudentName = null;
+const blockedLocalMessagesByRoom = {};
 
 const usersList = document.getElementById('usersList');
 const chatBox = document.getElementById('chat-box');
@@ -7,8 +8,45 @@ const chatTitle = document.getElementById('chatTitle');
 const inputArea = document.getElementById('inputArea');
 const chatForm = document.getElementById('chatForm');
 const messageInput = document.getElementById('messageInput');
+const imageInput = document.getElementById('imageInput');
+const selectedImageName = document.getElementById('selectedImageName');
 const finalizeChatBtn = document.getElementById('finalizeChatBtn');
 const reviewChatBtn = document.getElementById('reviewChatBtn');
+
+function getCurrentTimeLabel() {
+    const now = new Date();
+    return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+function appendBlockedLocalMessage(roomKey, text) {
+    if (!blockedLocalMessagesByRoom[roomKey]) {
+        blockedLocalMessagesByRoom[roomKey] = [];
+    }
+
+    blockedLocalMessagesByRoom[roomKey].push({
+        message: text,
+        time: getCurrentTimeLabel(),
+        user: 'Tú',
+    });
+}
+
+function renderBlockedLocalMessages(roomKey) {
+    const roomMessages = blockedLocalMessagesByRoom[roomKey] || [];
+
+    roomMessages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message blocked';
+
+        const textHtml = msg.message ? `<p>${msg.message}</p>` : '';
+        div.innerHTML = `
+            <div class="meta">${msg.user} - ${msg.time}</div>
+            ${textHtml}
+            <p class="blocked-note">Mensaje no enviado por spam</p>
+        `;
+
+        chatBox.appendChild(div);
+    });
+}
 
 function updateChatActionLinks() {
     const encodedRoom = encodeURIComponent(currentChatRoom);
@@ -89,6 +127,8 @@ async function loadMessages() {
 
             chatBox.appendChild(div);
         });
+
+        renderBlockedLocalMessages(currentChatRoom);
     } catch (e) { console.error(e); }
 }
 
@@ -121,6 +161,19 @@ chatForm.addEventListener('submit', async (e) => {
     // El backend devuelve un JSON con { success: true/false, message: "..." }
     const result = await response.json();
     if (!result.success) {
+        if (typeof result.message === 'string' && result.message.toLowerCase().includes('spam')) {
+            appendBlockedLocalMessage(currentChatRoom, text);
+            messageInput.value = '';
+            if (imageInput) {
+                imageInput.value = '';
+            }
+            if (selectedImageName) {
+                selectedImageName.textContent = 'Ninguna imagen seleccionada';
+            }
+            loadMessages();
+            return;
+        }
+
         console.error('Error enviando mensaje:', result.message);
         return;
     }

@@ -16,14 +16,14 @@ services:
       - ../sql/database.sql:/docker-entrypoint-initdb.d/database.sql
 
   # Detector de SPAM (Python)
-  # spam_detector:
-  #   build:
-  #     context: ../python-ia
-  #   container_name: spam_detector
-  #   ports:
-  #     - "5001:5000"
-  #   volumes:
-  #     - ../python-ia:/app
+  spam_detector:
+    build:
+      context: ../python-ia
+    container_name: spam_detector
+    ports:
+      - "5001:5000"
+    volumes:
+      - ../python-ia:/app
 
   # PHP con Apache
   php:
