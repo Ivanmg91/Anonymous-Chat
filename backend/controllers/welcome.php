@@ -21,4 +21,10 @@ if ($_SESSION['role'] == 'profesor') {
 }
 
 // SI ERES ADMIN (Opcional por ahora)
-echo "Hola Admin (Panel en construcción)";
+if ($_SESSION['role'] == 'admin') {
+    include 'admin_dashboard.php';
+    exit;
+}
+
+header('Location: ../../frontend/index.html');
+exit;
